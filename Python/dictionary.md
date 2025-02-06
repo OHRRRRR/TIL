@@ -58,6 +58,8 @@ print(person}
 //{'name':'jhon', 'age':31, 'city': 'seoul'}
 ```
 
+</br>
+
 ## 딕셔너리 요소 접근
 
 ### 1. key를 이용
@@ -80,6 +82,8 @@ print(person.get('name'))
 print(person.get('gender'))
 //None
 ```
+
+</br>
 
 ## 딕셔너리 요소 제거
 
@@ -109,6 +113,8 @@ person.clear()
 print(person)
 // {}
 ```
+
+</br>
 
 ## 딕셔너리 메서드
 
@@ -142,6 +148,8 @@ for key.value in person.items():
 // age:30
 // city:Seoul
 ```
+
+</br>
 
 ## 딕셔너리 응용 사용
 
