@@ -161,12 +161,17 @@ person={'name':'jhon','age':30, 'address':{'city':'Seoul', 'street':'123 Main st
 
 ### 2. 딕셔너리 특정 키 존재 확인
 
-````
+```
 person={'name':'jhon','age':30, 'city':'Seoul'}
 
 if 'age' in person:
 	print("age in person")
 else:
 	print("not in person")
-    ```
-````
+```
+
+### 3. 사전 순의 역순으로 정렬
+
+```
+temp = sorted(temp.keys(), reverse=True)
+```
