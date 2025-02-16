@@ -175,3 +175,21 @@ else:
 ```
 temp = sorted(temp.keys(), reverse=True)
 ```
+
+### 4. 딕셔너리 출력
+
+```
+print(*list(students.keys())[:n], sep="\n")
+```
+
+**1️⃣ students.keys() → 딕셔너리의 키만 가져오기**
+
+**2️⃣ list(students.keys()) → 키를 리스트로 변환**
+
+**3️⃣ list(students.keys())[:n] → 앞 n개의 키 가져오기**
+
+**4️⃣ print(\*리스트, sep="\n") → 요소를 한 줄씩 출력**
+
+• \*(언패킹 연산자)를 사용하면 리스트 요소를 **개별 인자로 전달**할 수 있음
+
+• sep="\n"을 설정하면, 각 요소를 **줄바꿈(**\n**)을 기준으로 출력**
