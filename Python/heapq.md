@@ -143,8 +143,9 @@ def heappop(heap):
         else:
             break
     return pop_data
+```
 
-
+```
 #테스트 코드
 import heapq
 h1 = [3, 4, 6, 8, 5, 7]
@@ -198,5 +199,5 @@ print(f"\n\n빈 힙에서 원소를 pop한 결과: {heappop(h)}")
 
 힙에서 모든 원소를 pop한 결과: 9 11 14 17 21 27 33
 
-빈 힙에서 원소를 pop한 결과: Empty Heap!
+빈 힙에서 원소를 pop한 결과: Empty Heap
 ```
