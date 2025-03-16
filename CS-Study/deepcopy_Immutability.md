@@ -20,16 +20,16 @@ console.log(obj1.age); // 30 (원본도 변경됨)
 
 assign은 ‘할당’이라는 뜻을 가지고 있으며 객체와 객체를 합쳐주는 메서드다.
 
-```
+```js
 var obj1 = {
   a: 10,
   b: {
-    c: 'abc',
+    c: "abc",
   },
 };
 var obj2 = Object.assign({}, obj1);
 obj2.a = 20;
-obj2.b.c = 'def';
+obj2.b.c = "def";
 
 console.log(obj1); // { a: 10, b: { c: "def" } }
 console.log(obj2); // { a: 20, b: { c: "def" } }
@@ -42,7 +42,7 @@ console.log(obj2); // { a: 20, b: { c: "def" } }
 
 ### for … in
 
-```
+```js
 var copyShallo = function (obj) {
   var result = {};
   for (var prop in obj) {
@@ -76,10 +76,10 @@ console.log(obj1.address.city); // "Seoul" (원본 유지)
 
 ### 참조형 타입의 깊은 복사
 
-```
+```js
 var obj1 = {
   a: 10,
-  b: 'abc',
+  b: "abc",
 };
 var obj2 = obj1;
 console.log(obj1 === obj2); // true
@@ -99,10 +99,10 @@ console.log(obj1 === obj2); // true
 
 ### 재귀 함수를 이용
 
-```
+```js
 var deepCopy = function (obj) {
   var result = {};
-  if (typeof obj === 'object' && obj !== null) {
+  if (typeof obj === "object" && obj !== null) {
     for (var prop in obj) {
       result[obj] = deepCopy(obj[prop]);
     }
@@ -119,7 +119,7 @@ deepCopy 함수는 함수 내부에서 자기 자신을 호출하는 재귀 함�
 
 ### 불변 값은, 변하지 않는 값이라는 뜻이다. 위에서 살펴본 기본형 타입은 불변 값이다. 그리고 참조형 타입은 대체적으로 가변값이다.
 
-```
+```js
 var a = 10;
 a = 20;
 console.log(a); // 20
@@ -136,7 +136,7 @@ console.log(a); // 20
 
 하지만 레퍼런스 타입은 다르다.
 
-```
+```js
 var obj = {
    a: 10,
    b: 'abc',
