@@ -1,5 +1,11 @@
 # 프로젝트를 npm에 배포하려면 어떤 설정이 필요할까
 
+npm으로 배포하려면 당연히 npm으로 생성한 프로젝트가 있어야 함
+
+```
+npm init -y
+```
+
 npm(Node Package Manager)에 패키지를 배포하려면 몇 가지 설정이 필요합니다.
 
 ## 1. `package.json` 설정
@@ -29,6 +35,35 @@ npm(Node Package Manager)에 패키지를 배포하려면 몇 가지 설정이 �
 - `keywords`: npm 검색 시 노출될 키워드
 - `license`: 라이선스 종류 (보통 `MIT`, `Apache-2.0` 등)
 
+### 버전 관리
+
+버전 체계는 일반적으로 major, minor, patch로 구성된다. 예를 들어 버전이 1.2.3인 경우 각각 매칭되는 구성요소는 다음과 같다.
+
+major : 1
+minor : 2
+patch : 3
+다른 글에 워낙 잘 정리되어 있어서 글을 안 남기려고 했는데, 각각의 개념을 최대한 간략하게 정리하면 다음과 같다.
+
+- major : 주 버전이라고 하며, 소프트웨어의 주요 변경사항이나 업그레이드를 나타낸다. major가 올라간다는 것은 기존 버전과 호환되지 않는 큰 변화가 존재할 수 있음을 암시한다.
+- minor : 부 버전이라고 하며, 새로운 기능이 추가되거나 기존 기능이 개선되었음을 나타낸다. minor가 올라간다는 것은 주 버전과의 호환성을 유지하면서 새로운 기능이 추가되었거나 개선되었음을 암시한다.
+- patch : 패지 버전이라고 하며, 주로 버그 픽스, 코드 수정 등의 작은 변경 사항은 나타낸다. 주 버전과 부 버전 사이의 패치가 이루어지며 기존 기능의 오류를 수정하거나 안정성을 개선하는데 주로 사용된다.
+
+npm 또한 위와 같은 버전 체계를 따르며, package.json의 version을 변경하는 명령어를 제공한다.
+
+```txt
+# PATCH 한 단계 올림
+npm version patch
+
+# MINOR 한 단계 올림
+npm version minor
+
+# MAJOR 한 단계 올림
+npm version major
+
+# 직접 버전 변경
+npm version [VERSION]
+```
+
 ## 2. `.npmignore` 설정
 
 배포하지 않을 파일을 `.npmignore` 파일에 추가합니다.
@@ -56,6 +91,144 @@ npm publish
 ```
 
 배포가 완료되면, `npm install my-awesome-package` 명령어로 설치할 수 있습니다.
+
+## 4. 패키지 배포 자동화
+
+패키지 배포를 자동화하기 위해 GitHub Actions를 활용하였다. 먼저, GitHub Actions로 배포하는 과정을 정리해보면 다음과 같다.
+
+1. master 브랜치에 커밋되면, package.json의 version에도 변경점이 있는지 확인한다.
+2. 변경점이 있으면 이전 커밋과 현재 커밋의 package.json의 version을 확인한다.
+3. 이 둘이 서로 다른 경우 현재 커밋을 기준으로 tag를 생성하고 push한다.
+4. 3번 작업이 완료되면 release를 생성한다.
+5. 4번 작업이 완료되면 npm에 배포한다.
+6. 5번 작업이 완료되면 GitHub Packages에 배포한다.
+
+위에도 언급했지만, 사실상 6번은 GitHub Packages로 배포한다기보다도 GitHub Repository에 현재 npm 버전을 보여주기 위한 용도로 이용하였다.
+
+위의 논리대로 동작하는 코드는 다음과 같다.
+
+- master 브랜치에 push 될 때, package.json의 내용이 변경되면 실행
+
+```sh
+on:
+  push:
+    branches: [master]
+    paths: ['package.json']
+```
+
+- 이전 커밋과 현재 커밋에서 package.json의 version을 outputs에 저장
+
+```sh
+jobs:
+  diff:
+    runs-on: ubuntu-22.04
+    outputs:
+      previous: ${{ steps.version.outputs.previous }}
+      current: ${{ steps.version.outputs.current }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - id: version
+        run: |
+          previous=$(git show HEAD^:package.json | grep '"version"' | awk -F '"' '{print $4}')
+          current=$(git show HEAD:package.json | grep '"version"' | awk -F '"' '{print $4}')
+          echo "previous=v$previous" >> $GITHUB_OUTPUT
+          echo "current=v$current" >> $GITHUB_OUTPUT
+```
+
+- 현재 버전을 기준으로 tag 생성 후 push
+- 이전 커밋과 현재 커밋의 package.json의 version이 다른 경우 실행
+
+```sh
+jobs:
+  diff:
+  create-tag:
+    needs: diff
+
+    if: needs.diff.outputs.previous != needs.diff.outputs.current
+    runs-on: ubuntu-22.04
+    outputs:
+      tag: ${{ steps.tag.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: tag
+        run: |
+          tag=${{ needs.diff.outputs.current }}
+          git tag $tag
+          git push origin $tag
+          echo "tag=$tag" >> $GITHUB_OUTPUT
+```
+
+- tag가 생성되면 release도 생성
+
+```sh
+jobs:
+  diff:
+  create-tag:
+  create-release:
+    needs: create-tag
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ needs.create-tag.outputs.tag }}
+          release_name: ${{ needs.create-tag.outputs.tag }}
+          draft: false
+          prerelease: false
+```
+
+- release가 생성되면 npm에 배포
+
+```sh
+jobs:
+  diff:
+  create-tag:
+  create-release:
+  npm-publish:
+    needs: create-release
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: https://registry.npmjs.org
+      - env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          npm ci
+          npm run build
+          npm publish
+```
+
+- npm에 배포완료 후 GitHub Packages로도 배포
+
+```sh
+jobs:
+  diff:
+  create-tag:
+  create-release:
+  npm-publish:
+  github-packages:
+    needs: npm-publish
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: https://npm.pkg.github.com
+      - env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          npm ci
+          npm run build
+          npm publish
+```
 
 ---
 
