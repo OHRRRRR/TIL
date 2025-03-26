@@ -7,7 +7,7 @@
 
 </br>
 
-> 스택 구현 예제 - append 사용
+### 스택 구현 예제 - append 사용
 
 ```
 stack = []
@@ -36,7 +36,8 @@ print(stack)
 
 - 먼저 들어온 데이터가 먼저 나가는 형식(선입선출)의 자료구조 : FIFO
 - 큐는 입구와 출구가 모두 뚫려 있는 터널과 같은 형태로 시각화할 수 있음
-  > 큐 구현 예제 - deque 사용
+
+### 큐 구현 예제 - deque 사용
 
 ```
 from coolections import deque
